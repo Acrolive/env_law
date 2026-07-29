@@ -4,3 +4,5 @@ logs/
 *.log
 nohup.out
 data/annex_samples/
+.claude/settings.local.json
+.env

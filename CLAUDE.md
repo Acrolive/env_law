@@ -111,7 +111,7 @@ pdftotext(PDF) ──→ 레이아웃 텍스트
   - `get-annex <MST> <별표번호> [hwp|pdf]` — 별표 파일 다운로드
 - **별표 변환**: `node scripts/parse_hwp.mjs <hwp_path>` (kordoc npm 직접 호출)
 - **유사도 검증**: `node scripts/verify_annex.mjs <hwp_path> <pdf_path>`
-- **OC (신청자 ID)**: `<발급받은OC>`
+- **OC (신청자 ID)**: `.env` 의 `LAW_API_OC` 값 (미설정 시 스크립트가 발급 안내 후 종료). 발급: https://open.law.go.kr — 최초 설정은 README 참조
 
 ## 폴더 구조
 ```

@@ -18,11 +18,30 @@
 #   admrul, ordin, prec 등 그 외 → ID= (일련번호)
 #   ※ admrul을 MST=로 조회하면 "일치하는 행정규칙이 없습니다" 오류 반환 (2026-07-27 확인)
 #
-# env: LAW_API_OC (default: <발급받은OC>)
+# env: LAW_API_OC (필수) — https://open.law.go.kr 에서 발급
 
 set -euo pipefail
 
-OC="${LAW_API_OC:-<발급받은OC>}"
+# .env 자동 로드 (프로젝트 루트)
+_ENV_FILE="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)/.env"
+if [ -f "$_ENV_FILE" ]; then
+  set -a; . "$_ENV_FILE"; set +a
+fi
+
+OC="${LAW_API_OC:-}"
+if [ -z "$OC" ]; then
+  cat >&2 <<'EOF'
+[설정 필요] 국가법령정보 OpenAPI 신청자 ID(OC)가 없습니다.
+
+  1) https://open.law.go.kr 에서 무료 신청 (본인 이메일 ID 앞부분이 OC 값)
+  2) 아래 중 하나로 설정:
+
+     export LAW_API_OC="발급받은ID"          # 이번 세션만
+     echo 'LAW_API_OC=발급받은ID' > .env       # 프로젝트에 저장 (권장)
+
+EOF
+  exit 3
+fi
 BASE="${LAW_API_BASE:-https://www.law.go.kr/DRF}"
 DL_BASE="https://www.law.go.kr"
 
@@ -55,7 +74,7 @@ target (search/get):
         pinst   (공공기관2)    trty  (조약)
         englaw  (영문법령)
 
-env: LAW_API_OC (default: <발급받은OC>)
+env: LAW_API_OC (필수) — https://open.law.go.kr 에서 발급
 EOF
   exit 2
 }

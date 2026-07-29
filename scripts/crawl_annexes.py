@@ -7,7 +7,7 @@ HWP 파일 + PDF 파일 + API JSON 별표내용을 함께 저장한다.
 
 import json, os, random, sys, time, urllib.parse, urllib.request, pathlib
 
-OC = os.environ.get("LAW_API_OC", "<발급받은OC>")
+OC = os.environ.get("LAW_API_OC") or sys.exit("[설정 필요] LAW_API_OC 환경변수가 없습니다. https://open.law.go.kr 에서 발급 후 export LAW_API_OC=발급받은ID")
 BASE = "https://www.law.go.kr/DRF"
 DL_BASE = "https://www.law.go.kr"
 
