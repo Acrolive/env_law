@@ -1,0 +1,21 @@
+{
+  "enabledPlugins": {
+    "oh-my-claudecode@omc": false,
+    "superpowers@superpowers-marketplace": false,
+    "meta-harness@local": false
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/scripts/log_conversation.mjs\" 2>/dev/null || true",
+            "timeout": 30,
+            "statusMessage": "대화 기록 중..."
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,6 @@
+node_modules/
+logs/
+.omc/
+*.log
+nohup.out
+data/annex_samples/

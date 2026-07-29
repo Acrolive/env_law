@@ -1,0 +1,12 @@
+{
+  "total": 120,
+  "kordoc": {
+    "success": 120,
+    "fail": 0
+  },
+  "pdftotext": {
+    "success": 120,
+    "fail": 0
+  },
+  "errors": 0
+}
