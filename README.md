@@ -63,10 +63,12 @@ codex exec --ephemeral -C "$PWD" -s read-only \
 `source.subagent.thread_spawn.agent_role`과 역할별 반환 JSON을 확인합니다.
 
 ```bash
-codex -C "$PWD" -s workspace-write -a never \
+codex -C "$PWD" -s danger-full-access -a never \
   -c 'model_reasoning_effort="xhigh"'
 # 세션 안에서: $auto-research-env-law <환경 법령 질의>
 ```
+
+현재 Linux 환경에서 중첩 custom agent가 명령을 실행할 때 `workspace-write`의 bwrap 권한 매핑이 실패할 수 있어, 신뢰할 수 있는 이 저장소의 전용 로컬 세션에서만 위 설정을 사용합니다. `bwrap` 또는 sandbox 초기화 오류가 발생하면 하네스는 품질 개선 루프에 넣지 않고 즉시 인프라 실패로 종료합니다.
 
 프로젝트 hook은 최초 실행 시 Codex의 신뢰 검토가 필요합니다. 대화 기록은
 `logs/conversations/`에 저장되며 Git에는 포함되지 않습니다.
@@ -109,3 +111,5 @@ npm test              # 라이브 국가법령정보 API 회귀 테스트
 npm run test:harness  # Codex 설정·skill·agent·hook 로거 검증
 npm run test:harness:live # 새 Codex 세션에서 세 custom agent 실제 호출 검증
 ```
+
+live 검증은 실제 모델 토큰을 사용하므로 동시 실행을 잠그고, 하네스 파일이 바뀌지 않았으면 24시간 동안 성공 결과를 재사용합니다. 반드시 다시 실행해야 할 때만 `CODEX_HARNESS_LIVE_FORCE=1 npm run test:harness:live`을 사용합니다.

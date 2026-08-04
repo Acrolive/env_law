@@ -21,17 +21,19 @@ description: 국가법령정보 OpenAPI로 환경 법령·행정규칙·판례·
 
 최대 4회 반복한다. 한 이터레이션의 단계는 서로 의존하므로 병렬 실행하지 않는다.
 
-1. `law_researcher` custom agent를 새 subagent로 실행한다. 입력은 원문 질의, 이터레이션 번호와 `prior_gaps`다.
+1. `law_researcher` custom agent를 `fork_turns=1`인 새 subagent로 실행한다. 입력은 원문 질의, 이터레이션 번호와 `prior_gaps`만 담은 최소 JSON이다.
 2. 반환 JSON을 `iter<N>-research.json`에 저장한다.
-3. `law_verifier` custom agent를 새 subagent로 실행하고 연구 JSON의 모든 인용을 독립 재호출하게 한다.
+3. `law_verifier` custom agent를 `fork_turns=1`로 실행한다. spawn 입력에 연구 JSON 본문을 붙이지 말고 `query`, `iteration`, `research_path`만 전달하여 해당 파일의 인용을 독립 재호출하게 한다.
 4. 반환 JSON을 `iter<N>-verification.json`에 저장한다.
 5. 검증 실패가 있으면 실패 사유만 `prior_gaps`로 넘기고 다음 이터레이션으로 간다.
-6. 검증된 evidence만 사용해 `AGENTS.md` 응답 순서로 초안을 만든다.
-7. `persona_evaluator` custom agent를 새 subagent로 실행한다. 원 질의, 검증된 evidence와 초안을 전달한다.
+6. 검증된 evidence만 사용해 `AGENTS.md` 응답 순서로 초안을 만들고 `iter<N>-draft.md`에 저장한다.
+7. `persona_evaluator` custom agent를 `fork_turns=1`로 실행한다. spawn 입력에 검증 JSON과 초안 본문을 붙이지 말고 `query`, `iteration`, `verification_path`, `draft_path`만 전달한다.
 8. 반환 JSON을 `iter<N>-evaluation.json`에 저장한다.
 9. 평균이 90 이상이면 종료한다. 아니면 통합 `must_fix`를 다음 이터레이션의 `prior_gaps`로 넘긴다.
 
 각 agent 산출물의 `agent_role`과 런타임의 생성 증거(`source.subagent.thread_spawn.agent_role` 또는 동등한 공식 이벤트)를 확인한다. 이름만 역할극한 주 에이전트 출력은 custom agent 실행으로 인정하지 않는다.
+
+전체 대화 이력이나 API 전문 응답을 agent 입력으로 복사하지 않는다. agent 간 인계는 위 상태 파일 경로로 한정한다. 도구 호출에서 `bwrap: setting up uid map`, sandbox 초기화 또는 권한 매핑 오류가 한 번이라도 발생하면 결과를 `infrastructure_failure`로 기록하고 즉시 종료한다. 이 오류에는 검증·평가 agent를 호출하지 않으며 4회 루프도 적용하지 않는다.
 
 custom agent를 사용할 수 없는 표면에서는 주 에이전트가 같은 역할을 순서대로 수행한다. 검증 재호출과 최대 4회 제한은 생략하지 않는다. 이때 실행 모드는 `fallback-self-evaluation`이며 점수는 독립 평가가 아니다. 마이그레이션·감사·재현 요청에서는 fallback을 성공으로 판정하지 않고 custom agent 미등록을 실패로 보고한다.
 

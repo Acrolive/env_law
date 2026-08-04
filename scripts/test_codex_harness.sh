@@ -69,6 +69,51 @@ for role, (claude_path, tokens) in pairs.items():
 check "Codex logger 구문" node --check scripts/log_codex_conversation.mjs
 check "Codex live agent 테스트 구문" bash -n scripts/test_codex_agents_live.sh
 check "Codex live agent 검증기 구문" python3 -c 'import ast, pathlib; ast.parse(pathlib.Path("scripts/verify_codex_agent_chain.py").read_text())'
+check "Codex agent 최소 컨텍스트 계약" bash -c '
+  rg -Fq "fork_turns=1" AGENTS.md &&
+  rg -Fq "fork_turns=1" .agents/skills/auto-research-env-law/SKILL.md &&
+  rg -Fq "research_path" .codex/agents/law_verifier.toml &&
+  rg -Fq "verification_path" .codex/agents/persona_evaluator.toml
+'
+check "Codex 인프라 오류 즉시 중단 계약" bash -c '
+  rg -Fq "infrastructure_failure" AGENTS.md &&
+  rg -Fq "infrastructure_failure" .agents/skills/auto-research-env-law/SKILL.md &&
+  rg -Fq "infrastructure_failure" .codex/agents/law_researcher.toml
+'
+check "Codex live agent 누수 방지 계약" bash -c '
+  rg -Fq "flock -n" scripts/test_codex_agents_live.sh &&
+  rg -Fq "CODEX_HARNESS_LIVE_TTL" scripts/test_codex_agents_live.sh &&
+  rg -Fq "CODEX_HARNESS_LIVE_FORCE" scripts/test_codex_agents_live.sh &&
+  rg -Fq "signal_runner_tree KILL" scripts/test_codex_agents_live.sh &&
+  rg -Fq "fork_turns=1" scripts/test_codex_agents_live.sh
+'
+
+LIVE_GUARD_DIR=$(mktemp -d)
+check "Codex live agent 가드 dry-run" env CODEX_HARNESS_STATE_DIR="$LIVE_GUARD_DIR" CODEX_HARNESS_LIVE_DRY_RUN=1 bash scripts/test_codex_agents_live.sh
+check "Codex live runner 프로세스 트리 정리" env CODEX_HARNESS_STATE_DIR="$LIVE_GUARD_DIR" CODEX_HARNESS_LIVE_CLEANUP_PROBE=1 bash scripts/test_codex_agents_live.sh
+exec 8>"$LIVE_GUARD_DIR/codex-agent-chain-live.lock"
+flock -n 8
+check "Codex live agent 동시 실행 차단" bash -c '
+  output=$(CODEX_HARNESS_STATE_DIR="$1" CODEX_HARNESS_LIVE_DRY_RUN=1 bash scripts/test_codex_agents_live.sh)
+  [[ "$output" == SKIP* ]]
+' _ "$LIVE_GUARD_DIR"
+exec 8>&-
+
+LIVE_FINGERPRINT=$(sha256sum \
+  AGENTS.md \
+  .agents/skills/auto-research-env-law/SKILL.md \
+  .codex/agents/law_researcher.toml \
+  .codex/agents/law_verifier.toml \
+  .codex/agents/persona_evaluator.toml \
+  .codex/config.toml \
+  scripts/test_codex_agents_live.sh \
+  scripts/verify_codex_agent_chain.py | sha256sum | cut -d' ' -f1)
+printf '%s %s\n' "$LIVE_FINGERPRINT" "$(date +%s)" > "$LIVE_GUARD_DIR/codex-agent-chain-live.success"
+check "Codex live agent 성공 결과 재사용" bash -c '
+  output=$(CODEX_HARNESS_STATE_DIR="$1" CODEX_HARNESS_LIVE_DRY_RUN=1 bash scripts/test_codex_agents_live.sh)
+  [[ "$output" == *"결과를 재사용함"* ]]
+' _ "$LIVE_GUARD_DIR"
+rm -rf -- "$LIVE_GUARD_DIR"
 
 TEST_DIR=$(mktemp -d)
 trap 'rm -rf -- "$TEST_DIR"' EXIT

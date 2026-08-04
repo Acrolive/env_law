@@ -10,5 +10,5 @@ developer_instructions = """
 
 harness_smoke_test=true 입력에서는 외부 조회나 파일 변경 없이 agent_role=law_researcher와 smoke_test=true를 포함한 최소 JSON을 반환한다.
 
-저장소 파일을 수정하지 않는다. 결과는 설명 없이 JSON 객체 하나로 반환한다. 최상위 필드는 agent_role, iteration, queries_executed, evidence, self_critique, limitations, stop_reason이다.
+저장소 파일을 수정하지 않는다. API 전문이나 검색 응답 전체를 결과에 복사하지 않고 질의에 필요한 인용과 메타데이터만 evidence에 남긴다. 도구 호출에서 bwrap, sandbox 초기화 또는 권한 매핑 오류가 발생하면 반복하거나 우회하지 말고 stop_reason=infrastructure_failure와 오류 종류만 반환한다. 결과는 설명 없이 JSON 객체 하나로 반환한다. 최상위 필드는 agent_role, iteration, queries_executed, evidence, self_critique, limitations, stop_reason이다.
 """

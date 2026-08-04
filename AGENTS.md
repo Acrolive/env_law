@@ -28,6 +28,8 @@
 - `law_researcher` → `law_verifier` → `persona_evaluator`를 순차적으로 실행한다. 뒤 단계는 앞 단계 산출물에 의존하므로 같은 이터레이션 안에서 병렬 실행하지 않는다.
 - 평균 90점 이상이면 종료하고, 아니면 `must_fix`를 다음 조사에 전달한다. 최대 4회까지만 반복한다.
 - 매 이터레이션은 새 subagent로 격리한다. custom agent가 제공되지 않는 표면에서는 주 에이전트가 같은 세 단계를 순차 수행하고 그 사실을 최종 답변에 표시한다.
+- custom agent는 `fork_turns=1`로 호출하고 현재 단계에 필요한 최소 구조화 입력만 전달한다. 전체 대화 이력, 전체 API 응답, 이전 agent 출력 본문을 spawn 프롬프트에 삽입하지 말고 `.harness/state/`의 파일 경로로 인계한다.
+- 도구 호출에서 `bwrap`, sandbox 초기화, 권한 매핑처럼 질의 내용과 무관한 동일 인프라 오류가 발생하면 `infrastructure_failure`로 즉시 중단한다. 이 오류를 90점 개선 루프나 최대 4회 재조사 대상으로 처리하지 않는다.
 - fallback 실행은 독립 다중에이전트 검증 또는 마이그레이션 재현 성공으로 판정하지 않는다. 자체평가 점수에는 `독립평가 아님`을 표시한다.
 - 마이그레이션·감사·재현 질의에서는 세 custom agent의 런타임 생성 증거(`source.subagent.thread_spawn.agent_role` 또는 동등한 공식 이벤트)가 없으면 실패로 판정하며 fallback으로 성공 처리하지 않는다.
 - 세 custom agent는 정확도가 중요하므로 `xhigh` reasoning을 사용한다. 지원되지 않으면 가장 높은 사용 가능 수준으로 실행하고 검증 공백을 밝힌다.
