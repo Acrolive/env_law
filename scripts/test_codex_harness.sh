@@ -33,15 +33,42 @@ assert len(agents) == 3
 for path in agents:
     data = tomllib.loads(path.read_text())
     assert all(data.get(key) for key in ("name", "description", "developer_instructions"))
-    assert "model" not in data and "model_reasoning_effort" not in data
+    assert path.stem == data["name"], (path, data["name"])
+    assert data.get("model_reasoning_effort") == "xhigh"
 '
 check "Codex 네트워크 설정" python3 -c '
 import tomllib
 data = tomllib.load(open(".codex/config.toml", "rb"))
 assert data["sandbox_workspace_write"]["network_access"] is True
+assert data["features"]["multi_agent"] is True
+assert data["agents"]["enabled"] is True
+assert data["agents"]["default_subagent_reasoning_effort"] == "xhigh"
 '
 check "4회/90점 계약" bash -c 'rg -q "최대 4회" AGENTS.md && rg -q "평균 90" AGENTS.md && rg -q "최대 4회" .agents/skills/auto-research-env-law/SKILL.md'
+check "Claude/Codex 핵심 계약 동등성" bash -c '
+  rg -Fq "law-researcher" CLAUDE.md && rg -Fq "law_researcher" AGENTS.md &&
+  rg -Fq "law-verifier" CLAUDE.md && rg -Fq "law_verifier" AGENTS.md &&
+  rg -Fq "persona-evaluator" CLAUDE.md && rg -Fq "persona_evaluator" AGENTS.md &&
+  rg -Fq "1..4" CLAUDE.md && rg -Fq "최대 4회" AGENTS.md &&
+  rg -Fq "mean(scores) >= 90" CLAUDE.md && rg -Fq "평균 90점 이상" AGENTS.md
+'
+check "Claude/Codex 에이전트 핵심 동작 보존" python3 -c '
+import pathlib, tomllib
+pairs = {
+    "law_researcher": (".claude/agents/law-researcher.md", ["law_api.sh", "get-article", "verify_annex.mjs", "prior_gaps", "source_url"]),
+    "law_verifier": (".claude/agents/law-verifier.md", ["law_api.sh", "get-article", "시행", "failed", "evidence"]),
+    "persona_evaluator": (".claude/agents/persona-evaluator.md", ["official", "expert", "operator", "accepted", "details", "must_fix"]),
+}
+for role, (claude_path, tokens) in pairs.items():
+    claude = pathlib.Path(claude_path).read_text()
+    codex = tomllib.loads(pathlib.Path(f".codex/agents/{role}.toml").read_text())["developer_instructions"]
+    for token in tokens:
+        assert token in claude, (role, "Claude", token)
+        assert token in codex, (role, "Codex", token)
+'
 check "Codex logger 구문" node --check scripts/log_codex_conversation.mjs
+check "Codex live agent 테스트 구문" bash -n scripts/test_codex_agents_live.sh
+check "Codex live agent 검증기 구문" python3 -c 'import ast, pathlib; ast.parse(pathlib.Path("scripts/verify_codex_agent_chain.py").read_text())'
 
 TEST_DIR=$(mktemp -d)
 trap 'rm -rf -- "$TEST_DIR"' EXIT

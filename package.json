@@ -8,7 +8,8 @@
   },
   "scripts": {
     "test": "bash scripts/test_law_api.sh",
-    "test:harness": "bash scripts/test_codex_harness.sh"
+    "test:harness": "bash scripts/test_codex_harness.sh",
+    "test:harness:live": "bash scripts/test_codex_agents_live.sh"
   },
   "keywords": [],
   "author": "",

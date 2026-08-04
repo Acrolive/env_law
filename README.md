@@ -48,7 +48,7 @@ ID를 설정하지 않았다면 발급 방법을 안내하는 메시지가 대�
 
 Claude Code에서 이 폴더를 열면 `CLAUDE.md`와 `.claude/` 하네스를 사용합니다.
 Codex에서 열면 `AGENTS.md`, `.agents/skills/`와 `.codex/agents/` 하네스를 사용합니다.
-Codex 조사 역할은 실행 시 지정한 `xhigh` reasoning을 상속합니다.
+Codex 조사 역할은 프로젝트 설정과 agent 파일에서 `xhigh` reasoning을 명시합니다.
 
 Codex CLI 재현 실행:
 
@@ -58,8 +58,9 @@ codex exec --ephemeral -C "$PWD" -s read-only \
   '파일 수정 없이 이 프로젝트의 법령 조사 규칙과 최대 반복 횟수를 요약해라.'
 ```
 
-전체 멀티에이전트 조사는 subagent thread가 필요한 대화형 세션에서 실행합니다.
-`--ephemeral`은 이 용도에 사용하지 않습니다.
+전체 멀티에이전트 조사는 대화형 세션에서 실행할 수 있습니다. 에이전트 등록 재현은
+별도의 라이브 테스트가 새 대화형 PTY 세션에서 실제 자식 세션의
+`source.subagent.thread_spawn.agent_role`과 역할별 반환 JSON을 확인합니다.
 
 ```bash
 codex -C "$PWD" -s workspace-write -a never \
@@ -106,4 +107,5 @@ node scripts/parse_hwp.mjs <hwp경로>                 # 별표 HWP → HTML 표
 ```bash
 npm test              # 라이브 국가법령정보 API 회귀 테스트
 npm run test:harness  # Codex 설정·skill·agent·hook 로거 검증
+npm run test:harness:live # 새 Codex 세션에서 세 custom agent 실제 호출 검증
 ```

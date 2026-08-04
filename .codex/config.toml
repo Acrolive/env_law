@@ -1,8 +1,11 @@
 [features]
 hooks = true
+multi_agent = true
 
 [agents]
+enabled = true
 max_concurrent_threads_per_session = 3
+default_subagent_reasoning_effort = "xhigh"
 
 [sandbox_workspace_write]
 network_access = true
