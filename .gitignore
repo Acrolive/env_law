@@ -1,6 +1,9 @@
 node_modules/
 logs/
 .omc/
+.omx/
+.harness/state/
+.codex-log/
 *.log
 nohup.out
 data/annex_samples/

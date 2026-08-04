@@ -1,0 +1,29 @@
+{
+  "description": "env_law Codex 대화를 기존 로컬 대화 로그 구조로 기록합니다.",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/log_codex_conversation.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Codex 사용자 메시지 기록 중..."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$(git rev-parse --show-toplevel)/scripts/log_codex_conversation.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Codex 답변 기록 중..."
+          }
+        ]
+      }
+    ]
+  }
+}
