@@ -3,7 +3,7 @@
 #
 # Usage:
 #   law_api.sh search       <target> <query> [display=20]
-#   law_api.sh get          <target> <MST|ID>
+#   law_api.sh get          <target> <MST|ID> [efYd]
 #   law_api.sh get-article  <target> <MST|ID> <조번호> [efYd=YYYYMMDD]
 #   law_api.sh list-annexes <MST>
 #   law_api.sh get-annex    <MST> <별표번호> [format=hwp|pdf] [outdir=/tmp]
@@ -14,7 +14,7 @@
 #           labc, appeal, acrs, educ, pcorp, pinst, trty, englaw
 #
 # 본문 조회(get/get-article) 파라미터:
-#   law, englaw          → MST= (법령 마스터번호)
+#   law, eflaw, englaw   → MST= (법령 마스터번호; eflaw는 efYd 필수)
 #   admrul, ordin, prec 등 그 외 → ID= (일련번호)
 #   ※ admrul을 MST=로 조회하면 "일치하는 행정규칙이 없습니다" 오류 반환 (2026-07-27 확인)
 #
@@ -55,12 +55,12 @@ usage() {
   cat >&2 <<'EOF'
 Usage:
   law_api.sh search       <target> <query> [display=20]
-  law_api.sh get          <target> <MST|ID>
+  law_api.sh get          <target> <MST|ID> [efYd]
   law_api.sh get-article  <target> <MST|ID> <조번호> [efYd]
   law_api.sh list-annexes <MST>
   law_api.sh get-annex    <MST> <별표번호> [format=hwp|pdf] [outdir=/tmp]
 
-식별자: law/englaw 는 MST(마스터번호), admrul/ordin/prec 등은 ID(일련번호) 자동 적용
+식별자: law/eflaw/englaw 는 MST(마스터번호, eflaw는 efYd 필수), admrul/ordin/prec 등은 ID(일련번호) 자동 적용
 
 target (search/get):
   법령: law, admrul, ordin
@@ -83,11 +83,12 @@ urlencode() {
   python3 -c 'import sys,urllib.parse;print(urllib.parse.quote(sys.argv[1], safe=""))' "$1"
 }
 
-# 본문 조회 식별자 파라미터명: law/englaw 는 MST(마스터번호), 그 외(admrul/ordin/prec 등)는 ID(일련번호)
+# 본문 조회 식별자 파라미터명: law/eflaw/englaw 는 MST(마스터번호), 그 외(admrul/ordin/prec 등)는 ID(일련번호)
+# ※ eflaw(연혁법령)를 ID=로 호출하면 조회 실패 (2026-07-31 검증 세션에서 확인)
 id_param() {
   case "$1" in
-    law|englaw) echo "MST" ;;
-    *)          echo "ID" ;;
+    law|eflaw|englaw) echo "MST" ;;
+    *)                echo "ID" ;;
   esac
 }
 
@@ -134,9 +135,12 @@ case "$cmd" in
     ;;
 
   get)
-    target="${1:-}"; mst="${2:-}"
+    target="${1:-}"; mst="${2:-}"; efyd="${3:-}"
     [[ -z "$target" || -z "$mst" ]] && usage
-    fetch "${BASE}/lawService.do?OC=${OC}&target=${target}&type=JSON&$(id_param "$target")=${mst}"
+    url="${BASE}/lawService.do?OC=${OC}&target=${target}&type=JSON&$(id_param "$target")=${mst}"
+    # eflaw(연혁법령)는 efYd 없이 호출하면 빈 응답({})을 반환 (2026-08-03 확인)
+    [[ -n "$efyd" ]] && url="${url}&efYd=${efyd}"
+    fetch "$url"
     ;;
 
   get-article)
@@ -151,9 +155,12 @@ d=json.loads(sys.stdin.read())
 jo='${jo}'
 
 # law: 법령 > 조문 > 조문단위 (구조화된 조문 객체)
+# 장(章)·절(節) 제목이 같은 조문번호를 공유하는 경우가 있어(조문여부='전문')
+# 실제 조문(조문여부='조문')을 우선 반환 (2026-07-28~31 검증 세션에서 반복 확인된 결함 수정)
 arts=d.get('법령',{}).get('조문',{}).get('조문단위',[])
 if isinstance(arts,dict): arts=[arts]
-found=[a for a in arts if str(a.get('조문번호',''))==jo]
+matches=[a for a in arts if str(a.get('조문번호',''))==jo]
+found=[a for a in matches if a.get('조문여부')=='조문'] or matches
 if found:
     print(json.dumps(found[0],ensure_ascii=False,indent=2))
     sys.exit(0)

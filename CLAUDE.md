@@ -109,6 +109,7 @@ pdftotext(PDF) ──→ 레이아웃 텍스트
   - `get-article <target> <MST|ID> <조번호> [efYd]` — 특정 조항만 조회 (시점별 가능, 행정규칙 조문도 지원)
   - `list-annexes <MST>` — 별표 목록 JSON
   - `get-annex <MST> <별표번호> [hwp|pdf]` — 별표 파일 다운로드
+- **회귀 테스트**: `npm test` (`scripts/test_law_api.sh`) — 실제 발견 결함 3건(admrul ID 파라미터, 장 제목 중복, eflaw efYd) 회귀 케이스 + 핵심 기능 5건, 라이브 API 스모크
 - **별표 변환**: `node scripts/parse_hwp.mjs <hwp_path>` (kordoc npm 직접 호출)
 - **유사도 검증**: `node scripts/verify_annex.mjs <hwp_path> <pdf_path>`
 - **OC (신청자 ID)**: `.env` 의 `LAW_API_OC` 값 (미설정 시 스크립트가 발급 안내 후 종료). 발급: https://open.law.go.kr — 최초 설정은 README 참조
@@ -120,6 +121,7 @@ env_law/
 ├── package.json                       # kordoc 의존성 (HWP 파싱용)
 ├── scripts/
 │   ├── law_api.sh                     # 국가법령정보 API curl 래퍼 (21개 도메인)
+│   ├── test_law_api.sh                # law_api.sh 회귀 테스트 (npm test)
 │   ├── parse_hwp.mjs                  # kordoc 직접 호출 HWP → HTML 변환
 │   ├── verify_annex.mjs               # 별표 유사도 검증 스크립트
 │   ├── crawl_annexes.py               # 실증 테스트 크롤러
