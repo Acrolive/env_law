@@ -68,7 +68,7 @@ render_final(verified, scores)
 별표가 포함된 법령 조회 시 다음 파이프라인을 자동으로 수행한다.
 
 ### 주 파서: kordoc (npm 직접 호출)
-- `node scripts/parse_hwp.mjs <hwp_path>` — kordoc v2.4 npm 패키지를 직접 호출
+- `node scripts/parse_hwp.mjs <hwp_path>` — kordoc v4.7 npm 패키지를 직접 호출
 - HWP/HWPX → HTML 테이블(colspan/rowspan 보존)로 변환
 - 외부 MCP 서버 없이 자체 코드만으로 동작 (의존성: kordoc npm만)
 - **환경 법령 별표에 대한 정확도는 아직 실증되지 않았다.** 별표를 인용할 때는 항상 아래 유사도 검증을 거치고, 판정 결과를 사용자에게 그대로 전달한다.

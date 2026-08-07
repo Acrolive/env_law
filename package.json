@@ -13,6 +13,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "kordoc": "^2.4.0"
+    "kordoc": "^4.7.2"
   }
 }
