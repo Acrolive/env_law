@@ -70,8 +70,8 @@ render_final(verified, scores)
 ### 주 파서: kordoc (npm 직접 호출)
 - `node scripts/parse_hwp.mjs <hwp_path>` — kordoc v2.4 npm 패키지를 직접 호출
 - HWP/HWPX → HTML 테이블(colspan/rowspan 보존)로 변환
-- **120건 실증 테스트에서 100% 파싱 성공** (2026-04-17 검증)
 - 외부 MCP 서버 없이 자체 코드만으로 동작 (의존성: kordoc npm만)
+- **환경 법령 별표에 대한 정확도는 아직 실증되지 않았다.** 별표를 인용할 때는 항상 아래 유사도 검증을 거치고, 판정 결과를 사용자에게 그대로 전달한다.
 
 ### 유사도 검증 (pdftotext 대조)
 별표를 인용할 때마다 `scripts/verify_annex.mjs`를 실행하여 kordoc 결과를 pdftotext 결과와 자동 비교한다.
@@ -97,10 +97,14 @@ pdftotext(PDF) ──→ 레이아웃 텍스트
 | < 50% | `critical` | "🚨 변환 결과가 원본과 크게 다릅니다. 반드시 원본 확인 필요." + PDF 링크 + HWP 링크 |
 | 파싱 실패 | `fail` | "❌ HWP 파싱 실패. 원본 PDF를 직접 확인해 주세요." + PDF 링크 |
 
-### 실증 데이터 (120건, 2026-04-17)
-- kordoc 성공률: 100%, pdftotext 성공률: 100%
-- 평균 유사도: 85.9%, 경고 발생 예상: ~5% (복잡 병합셀 표)
-- 상세: `data/annex_results/evaluation_report.md`
+### 유사도 지표의 한계 (반드시 인지할 것)
+`verify_annex.mjs` 의 유사도는 3글자 조각의 공통 비율일 뿐, 표의 **의미 보존**을 보증하지 않는다.
+유사도가 높아도 다음 오류는 검출되지 않는다.
+- 행·열의 뒤바뀜, 기준값과 대상 시설의 잘못된 연결
+- `이상`/`미만`/`초과` 등 부등호 의미의 변형
+- 수치·단위·각주 위치 오류, 병합 셀 해체로 인한 의미 관계 손실
+
+→ 별표 수치를 최종 판단의 유일한 근거로 제시하지 말고, 항상 원본 PDF 링크를 함께 첨부한다.
 
 ## API 설정
 - **CLI 래퍼**: `./scripts/law_api.sh` (자체 코드, curl 기반, 외부 의존 0)
@@ -118,26 +122,28 @@ pdftotext(PDF) ──→ 레이아웃 텍스트
 ```
 env_law/
 ├── CLAUDE.md                          # 본 규칙
+├── README.md                          # 설치·사용법
+├── .env.example                       # LAW_API_OC 설정 템플릿
 ├── package.json                       # kordoc 의존성 (HWP 파싱용)
 ├── scripts/
 │   ├── law_api.sh                     # 국가법령정보 API curl 래퍼 (21개 도메인)
 │   ├── test_law_api.sh                # law_api.sh 회귀 테스트 (npm test)
 │   ├── parse_hwp.mjs                  # kordoc 직접 호출 HWP → HTML 변환
-│   ├── verify_annex.mjs               # 별표 유사도 검증 스크립트
-│   ├── crawl_annexes.py               # 실증 테스트 크롤러
-│   ├── run_dual_parse.mjs             # 이중 파서 실행
-│   └── compare_results.py             # 3-way 비교 분석
+│   └── verify_annex.mjs               # 별표 유사도 검증 스크립트
 ├── data/
-│   ├── annex_samples/                 # 실증 테스트 원본 (120건)
-│   └── annex_results/                 # 파싱 결과 + 평가 보고서
+│   ├── 대기오염물질_별표1_약어.csv      # 물질명 → 권장약어 대조표
+│   └── 수질오염물질_별표2_약어.csv      # 물질명 → 권장약어 대조표
+├── docs/
+│   └── 프로젝트_비판적_리뷰.md          # 시스템 한계·개선 로드맵 (2026-08-03)
 ├── .claude/
+│   ├── settings.json                  # 플러그인 비활성화 (OMC·superpowers·meta-harness)
 │   ├── agents/
 │   │   ├── law-researcher.md          # Auto-research 검색 에이전트 (sonnet)
 │   │   ├── law-verifier.md            # API 재검증 에이전트 (sonnet)
 │   │   └── persona-evaluator.md       # 3 페르소나 평가 에이전트 (sonnet)
 │   └── skills/auto-research-env-law/
 │       └── SKILL.md                   # 루프 오케스트레이션 스킬
-└── .omc/state/                        # 이터레이션 중간 결과
+└── .omc/state/                        # 이터레이션 중간 결과 (git 미추적)
 ```
 
 ## 대화 방식

@@ -69,9 +69,18 @@ node scripts/parse_hwp.mjs <hwp경로>                 # 별표 HWP → HTML 표
 | `.claude/agents/` | 검색·검증·평가 담당 에이전트 |
 | `scripts/law_api.sh` | 법제처 API 래퍼 (21개 도메인) |
 | `scripts/parse_hwp.mjs` | 별표 HWP → HTML 표 변환 (kordoc) |
-| `data/annex_results/` | 별표 파싱 120건 실증 평가 결과 |
+| `scripts/verify_annex.mjs` | 별표 변환 결과 ↔ 원본 PDF 유사도 검증 |
+| `scripts/test_law_api.sh` | API 래퍼 회귀 테스트 (`npm test`) |
+| `docs/프로젝트_비판적_리뷰.md` | 시스템이 보증하는 범위와 한계 |
 
 ## 요구 사항
 
 - Node.js 18+ · Python 3 · `curl`
 - `pdftotext` (poppler-utils) — 별표 유사도 검증 시에만 필요
+
+## 한계
+
+이 시스템은 **사람의 최종 검토를 전제로 한 법령 리서치 보조도구**입니다.
+인용한 조문이 API 원문에 실제 존재하는지와 시행 중인지는 자동 검증하지만,
+그 조문이 해당 시설·규모에 **적용되는지**, 예외·부칙·단서를 누락하지 않았는지는
+보증하지 않습니다. 자세한 내용은 `docs/프로젝트_비판적_리뷰.md` 를 참고하세요.

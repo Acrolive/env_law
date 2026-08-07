@@ -21,7 +21,7 @@ prior_gaps = []
 final = null
 
 for iter in 1..4:
-    # 1) 검색 (Karpathy auto-research, MCP 도구 + kordoc)
+    # 1) 검색 (Karpathy auto-research, law_api.sh + kordoc)
     R = Agent(law-researcher, {query, prior_gaps, iteration: iter})
     # → 별표 인용 시 verify_annex.mjs 자동 실행, 경고 수준 포함
 
