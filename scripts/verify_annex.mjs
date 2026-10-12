@@ -12,7 +12,7 @@
 
 import { parse } from 'kordoc';
 import { readFileSync } from 'fs';
-import { execSync } from 'child_process';
+import { execFileSync } from 'child_process';
 
 const THRESHOLD_OK = 0.70;
 const THRESHOLD_WARN = 0.50;
@@ -79,7 +79,7 @@ async function main() {
   let pdfText = '';
   if (pdfPath) {
     try {
-      pdfText = execSync(`pdftotext -layout "${pdfPath}" -`, {
+      pdfText = execFileSync('pdftotext', ['-layout', pdfPath, '-'], {
         encoding: 'utf-8',
         timeout: 10000,
       }).replace(/\s+/g, ' ').trim();

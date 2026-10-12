@@ -1,0 +1,38 @@
+title = "env_law secret detection"
+
+[extend]
+useDefault = true
+
+[[rules]]
+id = "law-api-oc-assignment"
+description = "National Law Information API OC assignment"
+regex = '''(?i)LAW_API_OC\s*=\s*["']?([^\s"'#<>]+)'''
+secretGroup = 1
+keywords = ["LAW_API_OC"]
+
+  [[rules.allowlists]]
+  description = "Documented placeholders and deterministic test fixtures"
+  regexTarget = "secret"
+  stopWords = ["발급받은ID", "여기에_본인_OC_ID_입력", "test-user", "secret-user", "secret"]
+  regexes = [
+    '''^여기에_본인_OC_ID_입력$''',
+    '''^발급받은ID$''',
+    '''^(?:test-user|secret-user|secret)$''',
+    '''^<[^>]+>$''',
+  ]
+
+[[rules]]
+id = "law-api-oc-query"
+description = "National Law Information API OC in a URL"
+regex = '''(?i)[?&]OC(?:=|%3D)([^&\s"'<>]+)'''
+secretGroup = 1
+keywords = ["OC=", "OC%3D", "oc=", "oc%3d"]
+
+  [[rules.allowlists]]
+  description = "Masked values and deterministic test fixtures"
+  regexTarget = "secret"
+  stopWords = ["test-user", "secret-user", "secret", "<OC>", "<redacted>"]
+  regexes = [
+    '''^(?:test-user|secret-user|secret)$''',
+    '''^(?:%3C)?(?:OC|redacted)(?:%3E)?$''',
+  ]

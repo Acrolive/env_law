@@ -1,18 +1,28 @@
 {
   "name": "env_law",
   "version": "1.0.0",
-  "description": "",
+  "description": "국가법령정보 OpenAPI 기반 환경 법령 리서치 검증 하네스",
+  "private": true,
   "main": "index.js",
   "directories": {
     "doc": "docs"
   },
   "scripts": {
-    "test": "bash scripts/test_law_api.sh"
+    "test": "python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test:harness": "python3 -m unittest discover -s tests -p 'test_*.py'",
+    "test:api": "bash scripts/test_law_api.sh",
+    "test:all": "npm run test:harness && npm run test:api",
+    "release:check": "bash scripts/release_gate.sh",
+    "release:check:live": "bash scripts/release_gate.sh --live"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
+  "engines": {
+    "node": ">=20.9.0",
+    "npm": ">=10"
+  },
   "dependencies": {
-    "kordoc": "^4.7.2"
+    "kordoc": "^4.21.23"
   }
 }

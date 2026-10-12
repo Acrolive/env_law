@@ -1,0 +1,46 @@
+name: Live API verification
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-api-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  live-api:
+    name: Trusted live API tests
+    # Protect the "live-api" environment in repository settings before enabling this workflow.
+    environment: live-api
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.9.0
+          cache: npm
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run live API regression tests
+        env:
+          LAW_API_OC: ${{ secrets.LAW_API_OC }}
+        run: |
+          if [ -z "$LAW_API_OC" ]; then
+            echo 'LAW_API_OC repository or environment secret is not configured.' >&2
+            exit 1
+          fi
+          ./scripts/release_gate.sh --live-api-only --skip-gitleaks

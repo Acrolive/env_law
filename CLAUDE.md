@@ -11,7 +11,7 @@
 ## Hard Rules (위반 금지)
 1. **출처 강제**: 국가법령정보 API 응답으로 확인되지 않은 조문·판례·해석을 절대 생성하지 않는다. 확인 불가 시 "근거 미확인 — API 응답 기준 확답 불가" 라고 명시한다.
 2. **인용 정확성**: 법령명·조·항·호·공포번호·법령ID·시행일을 그대로 표기한다. 의역하지 않는다 (요약은 별도 섹션에서).
-3. **출처 URL 필수**: 모든 인용에 `https://www.law.go.kr/DRF/lawService.do?OC=<발급받은OC>&target=...&ID=...` 형식 또는 법령정보센터 본문 URL을 첨부한다.
+3. **출처 URL 필수**: 모든 인용에 `https://www.law.go.kr/DRF/lawService.do?OC=<OC>&target=...&ID=...`처럼 실제 OC를 마스킹한 형식 또는 법령정보센터 본문 URL을 첨부한다.
 4. **금칙어**: "일반적으로", "보통은", "통상" 등 근거 없는 일반화 표현 금지. 대신 구체 조문 인용 또는 "확인 불가" 명시.
 5. **개정·시행 상태 검증**: 인용 조문이 시행 중인지(시행일 ≤ 오늘) 확인하고, 시행 전/폐지 조문이면 명시적 경고.
 
@@ -113,7 +113,8 @@ pdftotext(PDF) ──→ 레이아웃 텍스트
   - `get-article <target> <MST|ID> <조번호> [efYd]` — 특정 조항만 조회 (시점별 가능, 행정규칙 조문도 지원)
   - `list-annexes <MST>` — 별표 목록 JSON
   - `get-annex <MST> <별표번호> [hwp|pdf]` — 별표 파일 다운로드
-- **회귀 테스트**: `npm test` (`scripts/test_law_api.sh`) — 실제 발견 결함 3건(admrul ID 파라미터, 장 제목 중복, eflaw efYd) 회귀 케이스 + 핵심 기능 5건, 라이브 API 스모크
+- **오프라인 하네스 테스트**: `npm test` — Codex/Claude 설정, 상태 단계, 평가 산술, OC 마스킹, 안전한 `.env` 로더 검증
+- **라이브 API 회귀 테스트**: `npm run test:api` (`scripts/test_law_api.sh`) — 실제 발견 결함 3건(admrul ID 파라미터, 장 제목 중복, eflaw efYd) 회귀 케이스 + 핵심 기능 5건
 - **별표 변환**: `node scripts/parse_hwp.mjs <hwp_path>` (kordoc npm 직접 호출)
 - **유사도 검증**: `node scripts/verify_annex.mjs <hwp_path> <pdf_path>`
 - **OC (신청자 ID)**: `.env` 의 `LAW_API_OC` 값 (미설정 시 스크립트가 발급 안내 후 종료). 발급: https://open.law.go.kr — 최초 설정은 README 참조
@@ -121,15 +122,26 @@ pdftotext(PDF) ──→ 레이아웃 텍스트
 ## 폴더 구조
 ```
 env_law/
+├── AGENTS.md                          # Codex 프로젝트 규칙
 ├── CLAUDE.md                          # 본 규칙
 ├── README.md                          # 설치·사용법
 ├── .env.example                       # LAW_API_OC 설정 템플릿
 ├── package.json                       # kordoc 의존성 (HWP 파싱용)
+├── .agents/skills/auto-research-env-law/
+│   ├── SKILL.md                       # Codex·Claude 공통 워크플로 진입점
+│   └── references/                    # 역할·출력·보안 공통 계약
+├── .codex/
+│   ├── config.toml                    # 프로젝트 subagent 설정
+│   └── agents/                        # Codex 검색·검증·평가 역할
 ├── scripts/
 │   ├── law_api.sh                     # 국가법령정보 API curl 래퍼 (21개 도메인)
-│   ├── test_law_api.sh                # law_api.sh 회귀 테스트 (npm test)
+│   ├── test_law_api.sh                # law_api.sh 라이브 회귀 테스트 (npm run test:api)
+│   ├── load_law_env.sh                # 셸 실행 없는 LAW_API_* 설정 로더
+│   ├── harness_state.py               # 순서·스키마·점수·비밀정보 상태 게이트
 │   ├── parse_hwp.mjs                  # kordoc 직접 호출 HWP → HTML 변환
 │   └── verify_annex.mjs               # 별표 유사도 검증 스크립트
+├── tests/
+│   └── test_harness.py                # 오프라인 하네스 회귀 테스트
 ├── data/
 │   ├── 대기오염물질_별표1_약어.csv      # 물질명 → 권장약어 대조표
 │   └── 수질오염물질_별표2_약어.csv      # 물질명 → 권장약어 대조표
@@ -143,7 +155,8 @@ env_law/
 │   │   └── persona-evaluator.md       # 3 페르소나 평가 에이전트 (sonnet)
 │   └── skills/auto-research-env-law/
 │       └── SKILL.md                   # 루프 오케스트레이션 스킬
-└── .omc/state/                        # 이터레이션 중간 결과 (git 미추적)
+├── .harness/runs/                     # 새 플랫폼 공통 실행 상태 (git 미추적)
+└── .omc/state/                        # 과거 OMC 실행 기록 (git 미추적)
 ```
 
 ## 대화 방식

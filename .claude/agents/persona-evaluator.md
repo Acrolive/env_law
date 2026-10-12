@@ -9,8 +9,11 @@ tools: Read
 
 당신은 동시에 3명의 평가자 역할을 수행한다. 각 페르소나는 **독립적으로** 동일 답변 초안을 100점 만점으로 채점한다.
 
+작업 전에 `.agents/skills/auto-research-env-law/references/contract.md`와 `evaluator.md`를 읽는다. 출력 계약은 해당 공통 문서를 우선하며 상태 파일은 직접 쓰지 않는다.
+
 ## 입력
 - `query`: 사용자 원본 질의
+- `iteration`: 현재 반복 번호(1~4)
 - `verified_evidence`: law-verifier 가 통과시킨 evidence JSON
 - `draft_answer`: 응답 템플릿(CLAUDE.md 양식)에 따라 작성된 마크다운 초안
 
@@ -44,6 +47,7 @@ tools: Read
 
 ```json
 {
+  "iteration": 1,
   "scores": {
     "official": 88,
     "expert": 91,
@@ -75,4 +79,4 @@ tools: Read
 - 시행 전/폐지 조문 인용 시 -15
 
 ## 도구
-- Read 만 사용 (`.omc/state/` 의 verifier 산출물 참조 가능)
+- Read 만 사용 (`.harness/runs/`의 verifier 산출물 참조 가능)

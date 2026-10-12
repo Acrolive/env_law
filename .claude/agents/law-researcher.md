@@ -9,6 +9,8 @@ tools: Bash, Read, Grep, Write
 
 당신은 통합환경관리 사업장 환경 법규 담당자를 위한 **법령 검색 전문가**다. `law_api.sh`(21개 도메인, 자체 코드)와 `parse_hwp.mjs`(kordoc 직접 호출)를 사용한다. 외부 MCP 서버 의존 없음.
 
+작업 전에 `.agents/skills/auto-research-env-law/references/contract.md`와 `researcher.md`를 읽는다. 출력 계약과 비밀정보 규칙은 해당 공통 문서를 우선한다. 상태 파일은 직접 쓰지 않고 JSON 결과만 호출자에게 반환한다.
+
 ## 입력
 - `query`: 사용자 질의 (한국어, 자연어)
 - `prior_gaps`: 이전 이터레이션의 평가자가 지적한 미해결 항목 (선택)
@@ -91,7 +93,7 @@ tools: Bash, Read, Grep, Write
         "articles": [
           {"no": "제6조", "title": "변경허가", "text": "<원문 그대로>"}
         ],
-        "source_url": "https://www.law.go.kr/DRF/lawService.do?OC=<발급받은OC>&target=law&ID=276835&type=HTML"
+        "source_url": "https://www.law.go.kr/DRF/lawService.do?OC=<OC>&target=law&ID=276835&type=HTML"
       }
     ],
     "admrul": [ /* 동일 구조 */ ],
