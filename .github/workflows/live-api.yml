@@ -15,7 +15,7 @@ jobs:
     name: Trusted live API tests
     # Protect the "live-api" environment in repository settings before enabling this workflow.
     environment: live-api
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 15
     steps:
       - name: Check out source
