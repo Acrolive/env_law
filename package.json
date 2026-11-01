@@ -23,6 +23,6 @@
     "npm": ">=10"
   },
   "dependencies": {
-    "kordoc": "^4.21.23"
+    "kordoc": "^4.24.36"
   }
 }
